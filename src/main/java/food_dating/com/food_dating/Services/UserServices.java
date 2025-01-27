@@ -11,7 +11,6 @@ import java.util.Optional;
 
 @Service
 public class UserServices {
-
     private final UserRepositary userRepositary;
     private final PasswordEncoder passwordEncoder;
 
@@ -21,30 +20,22 @@ public class UserServices {
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
-    // Save a new user
     public void saveUser(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword())); // Encrypt the password
-        userRepositary.save(user); // Save the user to the repository
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepositary.save(user);
     }
 
-    // Load user by phone number
     public Optional<User> loadByPhoneNo(String phoneNo) {
-        return userRepositary.findByPhoneNo(phoneNo); // Find user by phone number
+        return userRepositary.findByPhoneNo(phoneNo);
     }
 
-    // Validate user credentials
     public boolean validateUser(String phoneNo, String rawPassword) {
         Optional<User> userOptional = userRepositary.findByPhoneNo(phoneNo);
-
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            return passwordEncoder.matches(rawPassword, user.getPassword()); // Compare passwords
-        }
-
-        return false; // User not found or password mismatch
+        return userOptional
+                .map(user -> passwordEncoder.matches(rawPassword, user.getPassword()))
+                .orElse(false);
     }
 
-    // Get role of a user
     public String getUserRole(String phoneNo) {
         Optional<User> userOptional = userRepositary.findByPhoneNo(phoneNo);
         return userOptional.map(User::getRole).orElse(null);
