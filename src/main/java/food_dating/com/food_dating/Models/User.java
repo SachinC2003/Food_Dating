@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Setter
@@ -30,7 +31,7 @@ public class User {
 
     private String typeOfUser;
 
-    private List<String> orders;
+    private List<String> orders = new ArrayList<>();
 
     private String role;
 }

@@ -1,6 +1,8 @@
 package food_dating.com.food_dating.Filter;
 
 import food_dating.com.food_dating.Models.User;
+import food_dating.com.food_dating.Models.Vendor;
+import food_dating.com.food_dating.Repositary.VendorRepositary;
 import food_dating.com.food_dating.Services.UserServices;
 import food_dating.com.food_dating.Utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,9 @@ public class JwtFilter extends OncePerRequestFilter {
     private UserServices userServices;
 
     @Autowired
+    private VendorRepositary vendorRepository;
+
+    @Autowired
     private JwtUtils jwtUtils;
 
     @Override
@@ -41,24 +46,37 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // Validate JWT and set authentication context
         if (phoneNo != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            Optional<User> userOptional = userServices.loadByPhoneNo(phoneNo);
+            boolean isAuthenticated = false;
 
+            // Check if the phone number belongs to a User
+            Optional<User> userOptional = userServices.loadByPhoneNo(phoneNo);
             if (userOptional.isPresent() && jwtUtils.validateToken(jwt, userOptional.get())) {
                 User user = userOptional.get();
+                setAuthentication(user, request);
+                isAuthenticated = true;
+            }
 
-                // Create authentication token
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        user,
-                        null,
-                        Collections.emptyList() // You can use roles/authorities if needed
-                );
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // Set authentication in context
-                SecurityContextHolder.getContext().setAuthentication(auth);
+            // Check if the phone number belongs to a Vendor
+            if (!isAuthenticated) {
+                Optional<Vendor> vendorOptional = vendorRepository.findByPhoneNo(phoneNo);
+                if (vendorOptional.isPresent() && jwtUtils.validateToken(jwt, vendorOptional.get())) {
+                    Vendor vendor = vendorOptional.get();
+                    setAuthentication(vendor, request);
+                }
             }
         }
 
         chain.doFilter(request, response);
     }
+
+    private void setAuthentication(Object principal, HttpServletRequest request) {
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                principal,
+                null,
+                Collections.emptyList() // Use roles/authorities if needed
+        );
+        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
 }
+

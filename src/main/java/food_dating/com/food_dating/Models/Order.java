@@ -4,6 +4,9 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Setter
 @Getter
 @NoArgsConstructor
@@ -11,13 +14,21 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "order")
 public class Order {
     @Id
-    private String productId;
+    private String Id;
 
-    private String productName;
+    private List<String> products = new ArrayList<>();
 
-    private Integer productPrice;
+    private String deliveryById;
 
-    private Integer availableQuantity;
+    private String vendorId;
 
-    private String additionalDetails;
+    private String paymentType;
+
+    private Integer bill;
+
+    private enum Status {
+        PLACED, PICKUP, COMPLETED
+    }
+
+    private Status status;
 }
