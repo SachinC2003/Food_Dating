@@ -1,0 +1,11 @@
+spring:
+  application:
+    name:Food dating
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: Food-dating
+      auto-index-creation: true
+server:
+  port: 8080
