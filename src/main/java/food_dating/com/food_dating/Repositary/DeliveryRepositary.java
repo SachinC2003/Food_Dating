@@ -1,7 +1,11 @@
 package food_dating.com.food_dating.Repositary;
 
-import food_dating.com.food_dating.Models.Deliveries;
+import food_dating.com.food_dating.Models.Delivery;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface DeliveryRepositary  extends MongoRepository<Deliveries, String> {
+import java.util.List;
+
+public interface DeliveryRepositary  extends MongoRepository<Delivery, String> {
+    List<Delivery> findByDeliveryBoyId(String deliveryBoyId);
+    List<Delivery> findByVendorId(String vendorId);
 }

@@ -1,5 +1,6 @@
 package food_dating.com.food_dating.Utils;
 
+import food_dating.com.food_dating.Models.DeliveryBoy;
 import food_dating.com.food_dating.Models.User;
 import food_dating.com.food_dating.Models.Vendor;
 import io.jsonwebtoken.Claims;
@@ -76,6 +77,12 @@ public class JwtUtils {
         if (entity instanceof Vendor) {
             Vendor vendor = (Vendor) entity;
             return phoneNo.equals(vendor.getPhoneNo()) && !isTokenExpired(token);
+        }
+
+        // Handle delivary boy validation
+        if (entity instanceof DeliveryBoy) {
+            DeliveryBoy deliveryBoy = (DeliveryBoy) entity;
+            return phoneNo.equals(deliveryBoy.getPhoneNo()) && !isTokenExpired(token);
         }
 
         // Default: Invalid token

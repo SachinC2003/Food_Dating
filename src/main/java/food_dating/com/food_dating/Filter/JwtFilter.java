@@ -1,7 +1,9 @@
 package food_dating.com.food_dating.Filter;
 
+import food_dating.com.food_dating.Models.DeliveryBoy;
 import food_dating.com.food_dating.Models.User;
 import food_dating.com.food_dating.Models.Vendor;
+import food_dating.com.food_dating.Repositary.DeliveryBoyRepositary;
 import food_dating.com.food_dating.Repositary.VendorRepositary;
 import food_dating.com.food_dating.Services.UserServices;
 import food_dating.com.food_dating.Utils.JwtUtils;
@@ -28,6 +30,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Autowired
     private VendorRepositary vendorRepository;
+
+    @Autowired
+    private DeliveryBoyRepositary deliveryBoyRepositary;
 
     @Autowired
     private JwtUtils jwtUtils;
@@ -62,6 +67,15 @@ public class JwtFilter extends OncePerRequestFilter {
                 if (vendorOptional.isPresent() && jwtUtils.validateToken(jwt, vendorOptional.get())) {
                     Vendor vendor = vendorOptional.get();
                     setAuthentication(vendor, request);
+                }
+            }
+
+            // Check if the phone number belongs to a delivary boy
+            if (!isAuthenticated) {
+                Optional<DeliveryBoy> deliveryBoyOptional = deliveryBoyRepositary.findByPhoneNo(phoneNo);
+                if (deliveryBoyOptional.isPresent() && jwtUtils.validateToken(jwt, deliveryBoyOptional.get())) {
+                    DeliveryBoy deliveryBoy = deliveryBoyOptional.get();
+                    setAuthentication(deliveryBoy, request);
                 }
             }
         }

@@ -6,6 +6,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Setter
@@ -28,7 +29,7 @@ public class DeliveryBoy {
 
     private List<Double> location;
 
-    private List<String> delivery;
+    private List<String> delivery = new ArrayList<>();
 
     private String role;
 }

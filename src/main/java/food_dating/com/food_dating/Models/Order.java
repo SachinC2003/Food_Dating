@@ -5,7 +5,9 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Setter
 @Getter
@@ -16,9 +18,11 @@ public class Order {
     @Id
     private String Id;
 
-    private List<String> products = new ArrayList<>();
+    private Map<String, Integer> products = new HashMap<>();
 
-    private String deliveryById;
+    private String userId;
+
+    private String deliveryBoyId;
 
     private String vendorId;
 

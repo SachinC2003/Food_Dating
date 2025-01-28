@@ -40,6 +40,7 @@ public class OrderController {
             Optional<User> userOptional = userRepositary.findByPhoneNo(userPhoneNo);
             if (userOptional.isPresent()) {
                 user = userOptional.get();
+                order.setUserId(user.getId());
                 if (user.getOrders() == null) {
                     user.setOrders(new ArrayList<>());
                 }

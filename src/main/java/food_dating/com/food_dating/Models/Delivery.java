@@ -4,6 +4,7 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Setter
@@ -11,11 +12,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "delivery")
-public class Deliveries {
+public class Delivery {
     @Id
     private String deliveryId;
 
-    private List<String> orderId;
+    private List<String> orderId = new ArrayList<>();
 
     private Integer totalPrice;
 
