@@ -1,8 +1,10 @@
 package food_dating.com.food_dating.Models;
 import lombok.*;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,9 +18,11 @@ import java.util.Map;
 @Document(collection = "order")
 public class Order {
     @Id
-    private String Id;
-
-    private Map<String, Integer> products = new HashMap<>();
+    private String id;
+    public void setId(ObjectId id) {
+        this.id = id.toString();
+    }
+    private List<OrderProduct> products = new ArrayList<>();
 
     private String userId;
 
@@ -30,7 +34,7 @@ public class Order {
 
     private Integer bill;
 
-    private enum Status {
+    public enum Status {
         PLACED, PICKUP, COMPLETED
     }
 
