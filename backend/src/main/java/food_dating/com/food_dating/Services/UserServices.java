@@ -20,9 +20,9 @@ public class UserServices {
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
-    public void saveUser(User user) {
+    public User saveUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepositary.save(user);
+        return userRepositary.save(user);
     }
 
     public Optional<User> loadByPhoneNo(String phoneNo) {

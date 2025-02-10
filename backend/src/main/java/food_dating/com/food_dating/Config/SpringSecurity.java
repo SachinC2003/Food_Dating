@@ -19,9 +19,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+
+import static javax.management.Query.and;
 
 @Configuration
 @EnableWebSecurity
@@ -61,8 +67,10 @@ public class SpringSecurity {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors().configurationSource(corsConfigurationSource())
+                .and()
                 .authorizeRequests()
-                .antMatchers("/public/**", "/product/**", "/delivery/**", "/vendor/**").permitAll()
+                .antMatchers("/public/**", "/product/**", "/delivery/**", "/vendor/**", "/cart/**", "/deliveryBoy/**").permitAll()
                 .antMatchers("/user/**").authenticated()
                 .antMatchers("/admin/**").hasRole("admin")
                 .antMatchers(
@@ -93,6 +101,18 @@ public class SpringSecurity {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Allow frontend URL
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

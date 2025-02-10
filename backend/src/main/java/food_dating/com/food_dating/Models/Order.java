@@ -39,4 +39,6 @@ public class Order {
     }
 
     private Status status;
+
+    private List<Double> location;
 }

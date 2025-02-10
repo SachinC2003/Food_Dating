@@ -22,9 +22,9 @@ public class DeliveryBoyServices {
     }
 
     // Save a new delivery boy
-    public void saveDeliveryBoy(DeliveryBoy deliveryBoy) {
+    public DeliveryBoy saveDeliveryBoy(DeliveryBoy deliveryBoy) {
         deliveryBoy.setPassword(passwordEncoder.encode(deliveryBoy.getPassword())); // Encrypt the password
-        deliveryBoyRepositary.save(deliveryBoy); // Save to the repository
+        return deliveryBoyRepositary.save(deliveryBoy); // Save to the repository
     }
 
     // Load delivery boy by phone number

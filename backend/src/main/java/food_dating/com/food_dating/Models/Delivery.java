@@ -16,7 +16,7 @@ public class Delivery {
     @Id
     private String deliveryId;
 
-    private List<String> orderId = new ArrayList<>();
+    private List<Order> orderId = new ArrayList<>();
 
     private Integer totalPrice;
 

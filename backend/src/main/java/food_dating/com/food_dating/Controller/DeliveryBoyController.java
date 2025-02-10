@@ -2,8 +2,11 @@ package food_dating.com.food_dating.Controller;
 
 import food_dating.com.food_dating.Models.Delivery;
 import food_dating.com.food_dating.Models.DeliveryBoy;
+import food_dating.com.food_dating.Models.Order;
+import food_dating.com.food_dating.Models.Vendor;
 import food_dating.com.food_dating.Repositary.DeliveryBoyRepositary;
 import food_dating.com.food_dating.Repositary.DeliveryRepositary;
+import food_dating.com.food_dating.Repositary.OrderRepositary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +26,9 @@ public class DeliveryBoyController {
 
     @Autowired
     private DeliveryBoyRepositary deliveryBoyRepositary;
+
+    @Autowired
+    private OrderRepositary orderRepositary;
 
 
     @GetMapping("/Alldeliveries")
@@ -98,6 +104,9 @@ public class DeliveryBoyController {
                 case "role":
                     existingDeliveryBoy.setRole((String) value);
                     break;
+                case "image":
+                    existingDeliveryBoy.setImage((String) value);
+                    break;
                 default:
                     throw new IllegalArgumentException("Invalid field: " + key);
             }
@@ -109,5 +118,33 @@ public class DeliveryBoyController {
         return ResponseEntity.ok("Delivery boy updated successfully.");
     }
 
+    @GetMapping("/orders")
+    public ResponseEntity<?> getOrdersOfVendor() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
 
+        String deliveryBoyPhoneNo;
+
+        // Ensure the authenticated user is a vendor
+        if (principal instanceof DeliveryBoy) {
+            DeliveryBoy deliveryBoy = (DeliveryBoy) principal;
+            deliveryBoyPhoneNo = deliveryBoy.getPhoneNo();
+        } else {
+            return ResponseEntity.badRequest().body("Unauthorized: Only DeliveryBoy can access this route.");
+        }
+
+        // Fetch vendor from the database using phone number
+        DeliveryBoy deliveryBoy = deliveryBoyRepositary.findByPhoneNo(deliveryBoyPhoneNo).orElse(null);
+        if (deliveryBoy == null) {
+            return ResponseEntity.badRequest().body("DeliveryBoy not found.");
+        }
+
+        // Fetch products matching the vendor ID
+        List<Order> orders = orderRepositary.findAll();
+        if (orders.isEmpty()) {
+            return ResponseEntity.ok("No orders found for this DeliveryBoy.");
+        }
+
+        return ResponseEntity.ok(orders);
+    }
 }

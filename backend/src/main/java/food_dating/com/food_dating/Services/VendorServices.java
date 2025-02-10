@@ -15,12 +15,12 @@ public class VendorServices {
     @Autowired
     private PasswordEncoder passwordEncoder; // Inject PasswordEncoder as a bean
 
-    public void saveVendor(Vendor vendor) {
+    public Vendor saveVendor(Vendor vendor) {
         vendor.setName(vendor.getName());
         vendor.setPassword(passwordEncoder.encode(vendor.getPassword()));
         vendor.setPhoneNo(vendor.getPhoneNo());
         vendor.setRole(vendor.getRole());
 
-        vendorRepositary.save(vendor);
+        return vendorRepositary.save(vendor);
     }
 }

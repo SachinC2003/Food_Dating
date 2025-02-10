@@ -14,10 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -37,7 +34,22 @@ public class OrderController {
         String userPhoneNo = user.getPhoneNo();
 
         try {
-            // Save the order to the database
+            // Ensure product details are stored properly
+            if (order.getProducts() != null) {
+                List<OrderProduct> orderProducts = new ArrayList<>();
+                for (OrderProduct orderProduct : order.getProducts()) {
+                    if (orderProduct.getProduct() == null || orderProduct.getQuantity() == null || orderProduct.getQuantity() <= 0) {
+                        return ResponseEntity.badRequest().body("Each order product must have a valid product and quantity.");
+                    }
+                    orderProducts.add(new OrderProduct(
+                            orderProduct.getProduct(),
+                            orderProduct.getQuantity()
+                    ));
+                }
+                order.setProducts(orderProducts);
+            }
+
+            // Save the order
             Order savedOrder = orderRepositary.save(order);
 
             // Update the user's order list
@@ -61,16 +73,16 @@ public class OrderController {
     }
 
 
+
     @PutMapping("/updateOrder")
     public ResponseEntity<?> updateOrder(@RequestBody Map<String, Object> requestBody) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
-        String userPhoneNo = user.getPhoneNo();
 
         log.info("Received updateOrder request with body: {}", requestBody);
 
         try {
-            // Extract orderId from request body
+            // Extract orderId from request
             String orderId = (String) requestBody.get("orderId");
             if (orderId == null || orderId.trim().isEmpty()) {
                 log.error("Order ID is missing in the request.");
@@ -79,7 +91,7 @@ public class OrderController {
 
             log.info("Looking up order with ID: {}", orderId);
 
-            // Fetch order from the database using String ID
+            // Fetch order from database
             Optional<Order> orderOptional = orderRepositary.findById(orderId);
             if (orderOptional.isEmpty()) {
                 log.error("Order not found with ID: {}", orderId);
@@ -89,7 +101,7 @@ public class OrderController {
             Order order = orderOptional.get();
             log.info("Fetched order: {}", order);
 
-            // Ensure the order belongs to the authenticated user
+            // Ensure order belongs to the authenticated user
             if (!order.getUserId().equals(user.getId())) {
                 log.error("Unauthorized attempt to update order. User ID: {}, Order User ID: {}", user.getId(), order.getUserId());
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized: You can only update your own orders.");
@@ -101,26 +113,34 @@ public class OrderController {
                 return ResponseEntity.badRequest().body("Order status is not PLACED. Only PLACED orders can be updated.");
             }
 
-            // Process updates from request body
+            // Process products from request and update only the quantity
             if (requestBody.containsKey("products")) {
                 @SuppressWarnings("unchecked")
                 List<Map<String, Object>> productsList = (List<Map<String, Object>>) requestBody.get("products");
 
                 if (productsList != null) {
-                    List<OrderProduct> orderProducts = new ArrayList<>();
-                    for (Map<String, Object> productData : productsList) {
-                        String productId = (String) productData.get("orderId");
-                        Integer amount = (Integer) productData.get("amount");
+                    Map<String, Integer> updatedQuantities = new HashMap<>();
 
-                        if (productId == null || amount == null || amount <= 0) {
-                            return ResponseEntity.badRequest().body("Product ID and amount must be provided, and amount must be greater than 0.");
+                    // Extract quantity updates from request
+                    for (Map<String, Object> productData : productsList) {
+                        String productId = (String) productData.get("productId");
+                        Integer quantity = (Integer) productData.get("quantity");
+
+                        if (productId == null || quantity == null || quantity <= 0) {
+                            return ResponseEntity.badRequest().body("Each product must have a valid productId and quantity greater than 0.");
                         }
 
-                        orderProducts.add(new OrderProduct(productId, amount));
+                        updatedQuantities.put(productId, quantity);
                     }
 
-                    order.setProducts(orderProducts);
-                    log.info("Updated products: {}", orderProducts);
+                    // Update only the quantity in the existing order
+                    for (OrderProduct orderProduct : order.getProducts()) {
+                        if (updatedQuantities.containsKey(orderProduct.getProduct().getId())) {
+                            orderProduct.setQuantity(updatedQuantities.get(orderProduct.getProduct().getId()));
+                        }
+                    }
+
+                    log.info("Updated product quantities: {}", updatedQuantities);
                 }
             }
 
@@ -135,6 +155,7 @@ public class OrderController {
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
     }
+
 
 
 

@@ -1,9 +1,11 @@
 package food_dating.com.food_dating.Controller;
 
 import food_dating.com.food_dating.Models.Order;
+import food_dating.com.food_dating.Models.Product;
 import food_dating.com.food_dating.Models.User;
 import food_dating.com.food_dating.Models.Vendor;
 import food_dating.com.food_dating.Repositary.OrderRepositary;
+import food_dating.com.food_dating.Repositary.ProductRepositary;
 import food_dating.com.food_dating.Repositary.UserRepositary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +27,9 @@ public class UserController {
     @Autowired
     private UserRepositary userRepositary;
 
+    @Autowired
+    private ProductRepositary productRepositary;
+
     // Route to fetch orders for a specific user by userId
     @GetMapping("/orders")
     public ResponseEntity<?> getOrdersByUserId() {
@@ -44,6 +49,7 @@ public class UserController {
 
         // Fetch user from the database using phone number
         User user = userRepositary.findByPhoneNo(userPhoneNo).orElse(null);
+
         List<Order> orders = orderRepositary.findByUserId(user.getId());
 
         if (orders.isEmpty()) {
@@ -61,7 +67,7 @@ public class UserController {
 
         String userPhoneNo;
 
-        // Ensure the authenticated user is a user
+        // Ensure the authenticated user is a User
         if (principal instanceof User) {
             User authenticatedUser = (User) principal;
             userPhoneNo = authenticatedUser.getPhoneNo();
@@ -76,7 +82,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
         }
 
-        // Update fields dynamically based on keys in the map
+        // Dynamically update fields based on the keys in the map
         updates.forEach((key, value) -> {
             switch (key) {
                 case "name":
@@ -85,14 +91,17 @@ public class UserController {
                 case "location":
                     existingUser.setLocation((List<Double>) value);
                     break;
-                case "role":
-                    existingUser.setRole((String) value);
-                    break;
                 case "typeOfUser":
                     existingUser.setTypeOfUser((String) value);
                     break;
                 case "orders":
                     existingUser.setOrders((List<String>) value);
+                    break;
+                case "role":
+                    existingUser.setRole((String) value);
+                    break;
+                case "image":
+                    existingUser.setImage((String) value);
                     break;
                 default:
                     throw new IllegalArgumentException("Invalid field: " + key);
@@ -105,6 +114,33 @@ public class UserController {
         return ResponseEntity.ok("User updated successfully.");
     }
 
+    @GetMapping("/product")
+    public ResponseEntity<?> getProductOfVendor() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
 
+        String userPhoneNo;
 
+        // Ensure the authenticated user is a vendor
+        if (principal instanceof User) {
+            User user = (User) principal;
+            userPhoneNo = user.getPhoneNo();
+        } else {
+            return ResponseEntity.badRequest().body("Unauthorized: Only user can access this route.");
+        }
+
+        // Fetch vendor from the database using phone number
+        User user = userRepositary.findByPhoneNo(userPhoneNo).orElse(null);
+        if (user == null) {
+            return ResponseEntity.badRequest().body("user not found.");
+        }
+
+        // Fetch products matching the vendor ID
+        List<Product> products = productRepositary.findAll();
+        if (products.isEmpty()) {
+            return ResponseEntity.ok("No products found.");
+        }
+
+        return ResponseEntity.ok(products);
+    }
 }

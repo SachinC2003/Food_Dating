@@ -1,6 +1,5 @@
 package food_dating.com.food_dating.Models;
 import lombok.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -13,8 +12,8 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "vendor")
-public class Vendor {
+@Document(collection = "user")
+public class User {
     @Id
     private String id;
 
@@ -29,9 +28,11 @@ public class Vendor {
 
     private List<Double> location;
 
-    private List<String> delivery = new ArrayList<>();
+    private String typeOfUser;
 
-    private List<String> products = new ArrayList<>();
+    private List<String> orders = new ArrayList<>();
 
     private String role;
+
+    private String image;
 }

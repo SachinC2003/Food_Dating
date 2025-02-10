@@ -32,4 +32,6 @@ public class DeliveryBoy {
     private List<String> delivery = new ArrayList<>();
 
     private String role;
+
+    private String image;
 }

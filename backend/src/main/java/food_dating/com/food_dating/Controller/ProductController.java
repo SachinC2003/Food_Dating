@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Optional;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @Slf4j
 @RestController
 @RequestMapping("/product")
@@ -21,6 +22,7 @@ public class ProductController {
 
     @Autowired
     private ProductRepositary productRepositary;
+
     @Autowired
     private VendorRepositary vendorRepository;  // Add this
 
@@ -133,4 +135,49 @@ public class ProductController {
             return ResponseEntity.status(500).body("Error updating product: " + e.getMessage());
         }
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteProduct(@PathVariable String id) {
+        // Retrieve the authenticated vendor's phone number
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+        String vendorPhoneNo;
+
+        if (principal instanceof Vendor) {
+            Vendor vendor = (Vendor) principal;
+            vendorPhoneNo = vendor.getPhoneNo();
+        } else {
+            return ResponseEntity.badRequest().body("Unauthorized: Only vendors can delete products");
+        }
+
+        log.info("Vendor phone no: {}", vendorPhoneNo);
+
+        try {
+            // Find the vendor by phone number
+            Optional<Vendor> vendorOptional = vendorRepository.findByPhoneNo(vendorPhoneNo);
+            if (!vendorOptional.isPresent()) {
+                return ResponseEntity.badRequest().body("Vendor not found");
+            }
+
+            Vendor vendor = vendorOptional.get();
+
+            // Check if the product belongs to the vendor
+            if (!vendor.getProducts().contains(id)) {
+                return ResponseEntity.badRequest().body("Product not found in vendor's product list");
+            }
+
+            // Delete the product from the repository
+            productRepositary.deleteById(id);
+
+            // Remove the product from the vendor's product list
+            vendor.getProducts().remove(id);
+            vendorRepository.save(vendor);
+
+            return ResponseEntity.ok("Product deleted successfully");
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error deleting product: " + e.getMessage());
+        }
+    }
+
 }
