@@ -1,9 +1,11 @@
 package food_dating.com.food_dating.Controller;
 
 import food_dating.com.food_dating.Models.DeliveryBoy;
+import food_dating.com.food_dating.Models.Product;
 import food_dating.com.food_dating.Models.User;
 import food_dating.com.food_dating.Models.Vendor;
 import food_dating.com.food_dating.Repositary.DeliveryBoyRepositary;
+import food_dating.com.food_dating.Repositary.ProductRepositary;
 import food_dating.com.food_dating.Repositary.UserRepositary;
 import food_dating.com.food_dating.Repositary.VendorRepositary;
 import food_dating.com.food_dating.Services.DeliveryBoyServices;
@@ -15,10 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -43,6 +48,8 @@ public class PublicController {
     private VendorRepositary vendorRepositary;
     @Autowired
     private UserRepositary userRepositary;
+    @Autowired
+    private ProductRepositary productRepositary;
 
     @PostMapping("/user/register")
     public ResponseEntity<?> signupUser(@RequestBody User user) {
@@ -68,6 +75,7 @@ public class PublicController {
 
     @PostMapping("/user/login")
     public ResponseEntity<?> userLogin(@RequestBody User user) {
+
         try {
             Optional<User> existingUser = userRepositary.findByPhoneNo(user.getPhoneNo());
 
@@ -168,6 +176,7 @@ public class PublicController {
 
     @PostMapping("/vendor/login")
     public ResponseEntity<?> loginVendor(@RequestBody Vendor vendor) {
+        log.info("logi route ");
         try {
             Optional<Vendor> existingVendor = vendorRepositary.findByPhoneNo(vendor.getPhoneNo());
 
@@ -192,5 +201,35 @@ public class PublicController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Authentication failed: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/product")
+    public ResponseEntity<?> getProductOfVendor() {
+        /*Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+
+        String userPhoneNo;
+
+        // Ensure the authenticated user is a vendor
+        if (principal instanceof User) {
+            User user = (User) principal;
+            userPhoneNo = user.getPhoneNo();
+        } else {
+            return ResponseEntity.badRequest().body("Unauthorized: Only user can access this route.");
+        }
+
+        // Fetch vendor from the database using phone number
+        User user = userRepositary.findByPhoneNo(userPhoneNo).orElse(null);
+        if (user == null) {
+            return ResponseEntity.badRequest().body("user not found.");
+        }*/
+
+        // Fetch products matching the vendor ID
+        List<Product> products = productRepositary.findAll();
+        if (products.isEmpty()) {
+            return ResponseEntity.ok("No products found.");
+        }
+
+        return ResponseEntity.ok(products);
     }
 }
